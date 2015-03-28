@@ -233,7 +233,7 @@ trait CoGrouped[K, +R] extends KeyedListLike[K, R, CoGrouped] with CoGroupable[K
           RichFields(StringField("key")(ord, None)),
           NUM_OF_SELF_JOINS,
           outFields(firstCount),
-          new DistinctCoGroupJoiner(firstCount, joinFunction))
+          WrappedJoiner(new DistinctCoGroupJoiner(firstCount, joinFunction)))
       } else if (firstCount == 1) {
         /**
          * As long as the first one appears only once, we can handle self joins on the others:
@@ -270,7 +270,7 @@ trait CoGrouped[K, +R] extends KeyedListLike[K, R, CoGrouped] with CoGroupable[K
           }
         } else new DistinctCoGroupJoiner(isize, joinFunction)
 
-        new CoGroup(pipes, groupFields, outFields(dsize), cjoiner)
+        new CoGroup(pipes, groupFields, outFields(dsize), WrappedJoiner(cjoiner))
       } else {
         /**
          * This is non-trivial to encode in the type system, so we throw this exception
