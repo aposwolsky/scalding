@@ -272,6 +272,9 @@ object Config {
   /** Whether estimator should override manually-specified reducers. */
   val ReducerEstimatorOverride = "scalding.reducer.estimator.override"
 
+  /** Manual description for use in .dot and MR step names set using a `withDescription`. */
+  val WithDescriptionSetExplicitly = "scalding.with.description.set.explicitly"
+
   val empty: Config = Config(Map.empty)
 
   /*
