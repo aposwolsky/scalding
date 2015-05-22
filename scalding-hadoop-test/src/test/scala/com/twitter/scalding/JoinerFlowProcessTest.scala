@@ -2,7 +2,7 @@ package com.twitter.scalding
 
 import cascading.pipe.joiner.{ JoinerClosure, InnerJoin }
 import cascading.tuple.Tuple
-import com.twitter.scalding.platform.{ HadoopSharedPlatformTest, HadoopPlatformJobTest, HadoopPlatformTest }
+import com.twitter.scalding.platform.{ HadoopPlatformJobTest, HadoopPlatformTest }
 import org.scalatest.{ Matchers, WordSpec }
 
 import java.util.{ Iterator => JIterator }
@@ -62,7 +62,7 @@ class CheckForFlowProcessInTypedJob(args: Args) extends Job(args) {
   }).toTypedPipe.write(TypedTsv[(String, String)]("output"))
 }
 
-class JoinerFlowProcessTest extends WordSpec with Matchers with HadoopSharedPlatformTest {
+class JoinerFlowProcessTest extends WordSpec with Matchers with HadoopPlatformTest {
   "Methods called from a Joiner" should {
     "have access to a FlowProcess from a join in the Fields-based API" in {
       HadoopPlatformJobTest(new CheckForFlowProcessInFieldsJob(_), cluster)
