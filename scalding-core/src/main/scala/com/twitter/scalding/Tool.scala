@@ -16,9 +16,13 @@ limitations under the License.
 package com.twitter.scalding
 
 import org.apache.hadoop
+import org.apache.hadoop.mapred.JobConf
+import cascading.flow.hadoop.HadoopFlow
+import cascading.flow.planner.BaseFlowStep
 import cascading.tuple.Tuple
 import collection.mutable.{ ListBuffer, Buffer }
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.util.Try
 import java.io.{ BufferedWriter, File, FileOutputStream, OutputStreamWriter }
 import java.util.UUID
@@ -93,6 +97,26 @@ class Tool extends hadoop.conf.Configured with hadoop.util.Tool {
         */
         val thisDot = jobName + cnt + ".dot"
         println("writing DOT: " + thisDot)
+
+        /* We add descriptions if they exist to the stepName so it appears in the .dot file */
+        flow match {
+          case hadoopFlow: HadoopFlow =>
+            val flowSteps = hadoopFlow.getFlowSteps.asScala
+            flowSteps.foreach(step => {
+              val baseFlowStep: BaseFlowStep[JobConf] = step.asInstanceOf[BaseFlowStep[JobConf]]
+              val descriptions = baseFlowStep.getConfig.get(Config.StepDescriptions, "")
+              if (!descriptions.isEmpty) {
+                val stepXofYData = """\(\d+/\d+\)""".r.findFirstIn(baseFlowStep.getName).getOrElse("")
+                // Reflection is only temporary.  Latest cascading has setName public: https://github.com/cwensel/cascading/commit/487a6e9ef#diff-0feab84bc8832b2a39312dbd208e3e69L175
+                // https://github.com/twitter/scalding/issues/1294
+                val x = classOf[BaseFlowStep[JobConf]].getDeclaredMethod("setName", classOf[String])
+                x.setAccessible(true)
+                x.invoke(step, "%s %s".format(stepXofYData, descriptions))
+              }
+            })
+          case _ => // descriptions not yet supported in other modes
+        }
+
         flow.writeDOT(thisDot)
 
         val thisStepsDot = jobName + cnt + "_steps.dot"
